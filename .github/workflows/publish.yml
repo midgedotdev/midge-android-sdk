@@ -19,7 +19,7 @@ jobs:
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: 17 }
       # GitHub's Ubuntu runners come with the Android SDK (ANDROID_HOME); Gradle fetches the platform it needs.
-      - run: ./gradlew :midge:testReleaseUnitTest :midge:publishReleasePublicationToGitHubPackagesRepository
+      - run: ./gradlew :midge:testDebugUnitTest :midge:publishReleasePublicationToGitHubPackagesRepository
         env:
           MIDGE_SDK_VERSION: ${{ inputs.version || github.ref_name }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
