@@ -3,6 +3,10 @@ name: Publish
 on:
   push:
     tags: ['*.*.*']
+  # By hand for a tag already there (GitHub doesn't run workflows on a repository's very first push).
+  workflow_dispatch:
+    inputs:
+      version: { description: 'Version tag to publish, e.g. 0.1.0', required: true }
 permissions:
   contents: read
   packages: write
@@ -11,10 +15,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with: { ref: '${{ inputs.version || github.ref }}' }
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: 17 }
       - uses: android-actions/setup-android@v3
       - run: ./gradlew :midge:testReleaseUnitTest :midge:publishReleasePublicationToGitHubPackagesRepository
         env:
-          MIDGE_SDK_VERSION: ${{ github.ref_name }}
+          MIDGE_SDK_VERSION: ${{ inputs.version || github.ref_name }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
