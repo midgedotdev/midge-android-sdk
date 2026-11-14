@@ -1,0 +1,20 @@
+# A version tag (0.1.0) publishes dev.midge:sdk:<version> to this repository's GitHub Packages.
+name: Publish
+on:
+  push:
+    tags: ['*.*.*']
+permissions:
+  contents: read
+  packages: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 17 }
+      - uses: android-actions/setup-android@v3
+      - run: ./gradlew :midge:testReleaseUnitTest :midge:publishReleasePublicationToGitHubPackagesRepository
+        env:
+          MIDGE_SDK_VERSION: ${{ github.ref_name }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
