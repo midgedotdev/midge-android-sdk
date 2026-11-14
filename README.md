@@ -46,6 +46,8 @@ class ShopApp : Application() {
 
 val http = OkHttpClient.Builder().addInterceptor(Midge.okHttpInterceptor()).build()
 reportButton.setOnClickListener { Midge.report() }   // shaking the phone opens it too
+
+// HttpURLConnection / Volley's HurlStack: Midge.openConnection(url); any other client: Midge.network(method, url, status, durationMs)
 ```
 
 Register the app's application id under Settings › Workspace › Recording links › App SDK; only registered apps can
