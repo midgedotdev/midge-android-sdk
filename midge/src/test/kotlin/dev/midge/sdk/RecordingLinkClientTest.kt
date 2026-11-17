@@ -67,4 +67,25 @@ class RecordingLinkClientTest {
             assertEquals("This app isn’t registered with Acme.", error.message)
         }
     }
+
+    @Test fun aFullWorkspaceSaysSoAtSubmit() {
+        server.enqueue(MockResponse().setResponseCode(507).setBody("""{"detail":"workspace_storage_full"}"""))
+        val error = runCatching { client.submit(JSONObject()) }.exceptionOrNull() as RecordingLinkClient.Failure
+        assertEquals(RecordingLinkClient.WORKSPACE_FULL, error.code)
+        assertEquals(RecordingLinkClient.WORKSPACE_FULL_MESSAGE, error.message)
+    }
+
+    @Test fun aFullWorkspaceOrADailyLimitStopsTheUpload() {
+        val target = RecordingLinkClient.Upload(server.url("/api/uploads/v").toString(), 4)
+        val file = File.createTempFile("midge", ".mp4").apply { writeText("abcdef"); deleteOnExit() }
+        server.enqueue(MockResponse().setResponseCode(507).setBody("""{"detail":"workspace_storage_full"}"""))
+        val full = runCatching { client.upload(file, target) {} }.exceptionOrNull() as RecordingLinkClient.Failure
+        assertEquals(RecordingLinkClient.WORKSPACE_FULL, full.code)
+        assertEquals(1, server.requestCount)  // not retried
+        server.enqueue(MockResponse().setResponseCode(429)
+            .setBody("""{"detail":"This link has had too many recordings today. Try again tomorrow.","code":"link_daily_bytes"}"""))
+        val daily = runCatching { client.upload(file, target) {} }.exceptionOrNull() as RecordingLinkClient.Failure
+        assertEquals("link_daily_bytes", daily.code)
+        assertEquals("This link has had too many recordings today. Try again tomorrow.", daily.message)
+    }
 }

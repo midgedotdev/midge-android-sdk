@@ -47,11 +47,16 @@ internal class RecordingLinkClient(
         http.newCall(request).execute().use { response ->
             val text = response.body?.string().orEmpty()
             val json = runCatching { JSONObject(text) }.getOrElse { JSONObject() }
-            if (!response.isSuccessful) {
-                throw Failure(json.optString("detail").ifEmpty { "Midge answered ${response.code}." }, json.optString("code").ifEmpty { null })
-            }
+            if (!response.isSuccessful) throw refusal(response.code, json)
             return json
         }
+    }
+
+    /** midge.dev's refusal in plain words; a full workspace (507) gets its own sentence and code. */
+    private fun refusal(status: Int, json: JSONObject): Failure {
+        val detail = json.optString("detail")
+        if (status == 507 || detail == WORKSPACE_FULL) return Failure(WORKSPACE_FULL_MESSAGE, WORKSPACE_FULL)
+        return Failure(detail.ifEmpty { "Midge answered $status." }, json.optString("code").ifEmpty { null })
     }
 
     fun info(): Info {
@@ -93,6 +98,9 @@ internal class RecordingLinkClient(
                     .patch(buffer.copyOf(n).toRequestBody(OCTETS))
                     .build()
                 http.newCall(request).execute().use { response ->
+                    if (response.code == 429 || response.code == 507) {  // full workspace or daily limit: stop, say why
+                        throw refusal(response.code, runCatching { JSONObject(response.body?.string().orEmpty()) }.getOrElse { JSONObject() })
+                    }
                     if (!response.isSuccessful && response.code != 409) throw Failure("The upload stopped. Check your connection and try again.")
                     offset = response.header("Upload-Offset")?.toLongOrNull() ?: (offset + n)
                 }
@@ -102,6 +110,9 @@ internal class RecordingLinkClient(
     }
 
     companion object {
+        /** midge.dev's detail when the workspace is over its storage budget (HTTP 507). */
+        const val WORKSPACE_FULL = "workspace_storage_full"
+        const val WORKSPACE_FULL_MESSAGE = "This workspace is out of storage and can’t take new reports. Let the people who shared this link know."
         private val JSON = "application/json".toMediaType()
         private val OCTETS = "application/offset+octet-stream".toMediaType()
         private val DEFAULT_HTTP = OkHttpClient.Builder()
