@@ -4,12 +4,12 @@ A "Report a bug" for your own Android app. Someone shakes the phone (or taps you
 what went wrong; the report reaches your [Midge](https://midge.dev) workspace with the app's OkHttp requests, its
 logcat lines and the metadata you set, redacted on the phone before anything is sent.
 
-Early access: the package is private. Docs: <https://midge.dev/docs/share/android-sdk>.
+Early access. Docs: <https://midge.dev/docs/share/android-sdk>.
 
 ## Install
 
-Android 8.0 (API 26) or later. Add GitHub Packages with a token that can read this repository's packages
-(`read:packages`), for example in `~/.gradle/gradle.properties` as `gpr.user` and `gpr.key`:
+Android 8.0 (API 26) or later. GitHub Packages asks for a token even for public packages: create a classic GitHub
+token with only `read:packages` and add it, for example in `~/.gradle/gradle.properties` as `gpr.user` and `gpr.key`:
 
 ```kotlin
 // settings.gradle.kts
