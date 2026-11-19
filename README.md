@@ -8,27 +8,12 @@ Early access. Docs: <https://midge.dev/docs/share/android-sdk>.
 
 ## Install
 
-Android 8.0 (API 26) or later. GitHub Packages asks for a token even for public packages: create a classic GitHub
-token with only `read:packages` and add it, for example in `~/.gradle/gradle.properties` as `gpr.user` and `gpr.key`:
+Android 8.0 (API 26) or later. The library is on Maven Central:
 
 ```kotlin
-// settings.gradle.kts
-dependencyResolutionManagement {
-    repositories {
-        google()
-        mavenCentral()
-        maven("https://maven.pkg.github.com/midgedotdev/midge-android-sdk") {
-            credentials {
-                username = providers.gradleProperty("gpr.user").get()
-                password = providers.gradleProperty("gpr.key").get()
-            }
-        }
-    }
-}
-
 // app/build.gradle.kts
 dependencies {
-    implementation("dev.midge:sdk:0.1.0")
+    implementation("dev.midge:sdk:0.2.2")
 }
 ```
 
